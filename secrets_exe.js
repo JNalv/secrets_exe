@@ -1,10 +1,17 @@
 var Twit = require('twit');
-var keys = require('./keys.js');
+var credentials = require('./credentials.js');
 var shuffle = require('shuffle-array')
 
-var secrets, newDM, nextDM, yentaID
+var T = new Twit({
+    consumer_key: credentials.consumer_key,
+    consumer_secret: credentials.consumer_secret,
+    access_token: credentials.access_token,
+    access_token_secret: credentials.access_token_secret
+});
 
-newDM = 'ayyyyyyyy lmao'
+var secrets, incoming, outgoing, yentaID
+
+newDM = '@blinsay is a reptiloid.'
 
 secrets = [
 
@@ -17,18 +24,23 @@ secrets = [
 
 ]
 
-console.log(secrets);
+//console.log(secrets);
+//shuffle(secrets);
+//console.log(secrets);
+//nextDM = secrets.pop();
+//console.log(nextDM);
+//console.log(secrets);
+//secrets.push(newDM);
+//console.log(secrets);
 
-shuffle(secrets);
+var stream = T.stream('user');
 
-console.log(secrets);
+stream.on('direct_message', function (directMsg) {
 
-nextDM = secrets.pop();
+//if (DM.sender_screen_name != "JNalv"){
 
-console.log(nextDM);
+console.log(directMsg);
 
-console.log(secrets);
-
-secrets.push(newDM);
-
-console.log(secrets);
+//} 
+}
+)
