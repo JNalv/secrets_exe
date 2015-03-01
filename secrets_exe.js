@@ -33,15 +33,6 @@ secrets = [
 
 ]
 
-//console.log(secrets);
-//shuffle(secrets);
-//console.log(secrets);
-//nextDM = secrets.pop();
-//console.log(outgoing);
-//console.log(secrets);
-//secrets.push(incoming);
-//console.log(secrets);
-
 // Find people following
 
 var find_followers = function() {
@@ -97,6 +88,7 @@ var calculate_bros = function() {
     	to_follow = _.without(to_follow, remove);
     	console.log(to_follow);
         }
+        
         followback();
 }
 
@@ -132,7 +124,7 @@ var unfollow = function() {
             })
         }
     }
-    secret_swap();
+    stream.start();
 }
 
 // Defines what to stream on
@@ -144,20 +136,59 @@ var stream = T.stream('user');
 var secret_swap = function() {
     console.log("Starting stream...");
     stream.on('direct_message', function(directMsg) {
+    	
+    	yenta_id = directMsg.direct_message.sender.screen_name;
+    	console.log(yenta_id);
+    	
+    	// Both parties receive the same DM event. Bot needs to ensure
+    	// the event isn't from itself
 
-        //if (DM.sender_screen_name != "JNalv"){
+        if (yenta_id != 'WhoIsHome'){
 
-        console.log(directMsg);
-
-        //} 
-    })
-}
-
-// Stops the stream (friends + follows are loaded on start, don't refresh mid-stream),
-// then starts the cascade of social functions
-
-setInterval(function() {
-    stream.stop();
+        console.log('Incoming message from ' + yenta_id);
+        incoming = directMsg.direct_message.text;
+        console.log(incoming);
+        
+        // Media won't work. Respond to picture links with apology
+        
+        if (incoming.indexOf('https://') > -1){
+        
+        T.post('direct_messages/new', {
+        screen_name: yenta_id,
+        text: '(Sorry, I only work with text)'
+        }, function(err, data, response) { console.log(err)});
+        
+        } else {
+        
+        // The actual secret swap function
+        
+        console.log(secrets);
+		shuffle(secrets);
+		console.log(secrets);
+		outgoing = secrets.pop();
+		console.log(outgoing);
+		
+		T.post('direct_messages/new', {
+        screen_name: yenta_id,
+        text: outgoing
+        }, function(err, data, response) { console.log(err)});
+		
+		console.log(secrets);
+		secrets.push(incoming);
+		console.log(secrets);
+        
+        }
+    }})
+    
+    // Stops the stream (friends + follows are loaded on start, don't refresh mid-stream),
+// then starts the cascade of social functions. Stream restarts at end of cascade.
+    
+    setInterval(function() {
+	stream.stop();
     find_followers();
     // vvvvvvv THIS LINE SETS THE INTERVAL! REMEMBER, BRO! vvvvvvv
-}, 5000);
+}, 50000);
+
+}
+
+secret_swap();
