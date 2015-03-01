@@ -18,18 +18,16 @@ var T = new Twit({
 var secrets, incoming, outgoing, yenta_id
 
 // Social vars
-var friends, followers, pendings, mutuals, to_follow_true, to_unfollow
-
-incoming = '@blinsay is a reptiloid.'
+var friends, followers, pendings, mutuals, to_unfollow
 
 secrets = [
 
-    "AAA",
-    "BBB",
-    "CCC",
-    "111",
-    "222",
-    "333"
+    "I sleep with my socks on.",
+    "I hate the beach. Hate it.",
+    "I haven't read a book in far too long.",
+    "I still tie my shoelaces bunny ears-style.",
+    "@blinsay is a reptiloid.",
+    "Joe Biden is a reptiloid."
 
 ]
 
@@ -37,7 +35,7 @@ secrets = [
 
 var find_followers = function() {
     T.get('followers/ids', {
-        screen_name: 'whoishome'
+        screen_name: 'secrets_exe'
     }, function(err, data, response) {
         followers = data.ids;
         console.log('Followed by: ' + followers);
@@ -49,7 +47,7 @@ var find_followers = function() {
 
 var find_friends = function() {
     T.get('friends/ids', {
-        screen_name: 'whoishome'
+        screen_name: 'secrets_exe'
     }, function(err, data, response) {
         friends = data.ids;
         console.log('Friends (who I am following): ' + friends);
@@ -81,15 +79,15 @@ var calculate_bros = function() {
     to_unfollow = _.difference(friends, mutuals);
     console.log('To Unfollow: ' + to_unfollow);
 
-    // This bit removes pending requests from the list of people to follow
+	// This bit removes pending requests from the list of people to follow
 
-   for (i = 0; i < pendings.length; i++) {
-   		var remove = parseInt(pendings[i]);
-    	to_follow = _.without(to_follow, remove);
-    	console.log(to_follow);
-        }
-        
-        followback();
+    for (i = 0; i < pendings.length; i++) {
+        var remove = parseInt(pendings[i]);
+        to_follow = _.without(to_follow, remove);
+        console.log('Edited people to follow: ' + to_follow);
+    }
+
+    followback();
 }
 
 // Loops through list of people to follow (if there are any), and follows each
@@ -136,58 +134,63 @@ var stream = T.stream('user');
 var secret_swap = function() {
     console.log("Starting stream...");
     stream.on('direct_message', function(directMsg) {
-    	
-    	yenta_id = directMsg.direct_message.sender.screen_name;
-    	console.log(yenta_id);
-    	
-    	// Both parties receive the same DM event. Bot needs to ensure
-    	// the event isn't from itself
 
-        if (yenta_id != 'WhoIsHome'){
+        yenta_id = directMsg.direct_message.sender.screen_name;
+        console.log(yenta_id);
 
-        console.log('Incoming message from ' + yenta_id);
-        incoming = directMsg.direct_message.text;
-        console.log(incoming);
-        
-        // Media won't work. Respond to picture links with apology
-        
-        if (incoming.indexOf('https://') > -1){
-        
-        T.post('direct_messages/new', {
-        screen_name: yenta_id,
-        text: '(Sorry, I only work with text)'
-        }, function(err, data, response) { console.log(err)});
-        
-        } else {
-        
-        // The actual secret swap function
-        
-        console.log(secrets);
-		shuffle(secrets);
-		console.log(secrets);
-		outgoing = secrets.pop();
-		console.log(outgoing);
-		
-		T.post('direct_messages/new', {
-        screen_name: yenta_id,
-        text: outgoing
-        }, function(err, data, response) { console.log(err)});
-		
-		console.log(secrets);
-		secrets.push(incoming);
-		console.log(secrets);
-        
+        // Both parties receive the same DM event. Bot needs to ensure
+        // the event isn't from itself
+
+        if (yenta_id != 'secrets_exe') {
+
+            console.log('Incoming message from ' + yenta_id);
+            incoming = directMsg.direct_message.text;
+            console.log('Message: ' + incoming);
+
+            // Media won't work. Respond to picture links with apology
+
+            if (incoming.indexOf('https://') > -1) {
+
+                T.post('direct_messages/new', {
+                    screen_name: yenta_id,
+                    text: '(Sorry, I only work with text)'
+                }, function(err, data, response) {
+                    console.log(err)
+                });
+
+            } else {
+
+                // The actual secret swap!
+
+                console.log(secrets);
+                shuffle(secrets);
+                console.log(secrets);
+                outgoing = secrets.pop();
+                console.log(outgoing);
+
+                T.post('direct_messages/new', {
+                    screen_name: yenta_id,
+                    text: outgoing
+                }, function(err, data, response) {
+                    console.log(err)
+                });
+
+                console.log(secrets);
+                secrets.push(incoming);
+                console.log(secrets);
+
+            }
         }
-    }})
-    
+    })
+
     // Stops the stream (friends + follows are loaded on start, don't refresh mid-stream),
-// then starts the cascade of social functions. Stream restarts at end of cascade.
-    
+    // then starts the cascade of social functions. Stream restarts at end of cascade.
+
     setInterval(function() {
-	stream.stop();
-    find_followers();
-    // vvvvvvv THIS LINE SETS THE INTERVAL! REMEMBER, BRO! vvvvvvv
-}, 50000);
+        stream.stop();
+        find_followers();
+        // vvvvvvv THIS LINE SETS THE INTERVAL! REMEMBER, BRO! vvvvvvv
+    }, 150000);
 
 }
 
